@@ -1,0 +1,63 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Web;
+using System.Data.SqlClient;
+using System.Web.Services;
+using System.Diagnostics; 
+
+namespace WS_Hom_01_01_03_14
+{
+    /// <summary>
+    /// Summary description for Service1
+    /// </summary>
+    [WebService(Namespace = "http://localhost/", Name="CompleteClinicalData")]
+    [WebServiceBinding(ConformsTo = WsiProfiles.BasicProfile1_1)]
+    [System.ComponentModel.ToolboxItem(false)]
+    // To allow this Web Service to be called from script, using ASP.NET AJAX, uncomment the following line. 
+    // [System.Web.Script.Services.ScriptService]
+    public class Service1 : System.Web.Services.WebService
+    {
+
+        [WebMethod (Description="web services prueba central medica")]
+        public string ClinicalData(String glucoseIndex, String bloodPressure)
+        {
+            string ackno = "0"; 
+            
+            #region conexion_server
+            string data_source = "MICRODATA-THINK\\MSSQLSERVER2";
+            string initial_catalog = "GeneralClinicalData";
+            string user_id = "microdata";
+            string password = "microdata1*";
+            
+            SqlConnection connection = new SqlConnection();            
+            connection.ConnectionString = "Data Source="+data_source+";Initial Catalog="+initial_catalog+";User ID="+user_id+";Password="+password;
+            #endregion
+
+            #region insercion
+            SqlCommand command = new SqlCommand();
+            command.Connection = connection;
+            command.Parameters.AddWithValue("@glucoseIndex", glucoseIndex);
+            command.Parameters.AddWithValue("@bloodPressure", bloodPressure);            
+            command.Parameters.AddWithValue("@dateSubmit", DateTime.Now.ToUniversalTime());
+            command.CommandText = "INSERT INTO HealthData (glucoseIndex, bloodPressure, dateSubmit) " +
+                                    "VALUES( @glucoseIndex, @bloodPressure, @dateSubmit ) ;";
+            try
+            {
+                connection.Open();
+                ackno = Convert.ToString(command.ExecuteNonQuery());                 
+            }
+            catch (Exception ex)
+            {
+                Trace.WriteLine(ex.Message); 
+            }
+            finally
+            {
+                connection.Close();
+            }
+            #endregion
+            
+            return ackno;
+        }
+    }
+}
